@@ -55,7 +55,7 @@ $['plug']("ajax", function ($) {
       var xhr = _xhr(), timer, n = 0;
       if (typeof url === "object") o = url;
       else o['url'] = url;
-      o = $['_defaults'](o, { 'userAgent': "XMLHttpRequest", 'lang': "en", 'type': "GET", 'data': null, 'contentType': "application/x-www-form-urlencoded", 'dataType': null, 'processData': true, 'headers': {"X-Requested-With": "XMLHttpRequest" }});
+      o = $['_defaults'](o, {'async': true, 'cache': false, 'userAgent': "XMLHttpRequest", 'lang': "en", 'type': "GET", 'data': null, 'contentType': "application/x-www-form-urlencoded", 'dataType': null, 'processData': true, 'headers': {"X-Requested-With": "XMLHttpRequest" }});
       if (o.timeout) timer = setTimeout(function () { xhr.abort(); if (o.timeoutFn) o.timeoutFn(o.url); }, o.timeout);
       var cbCtx = $(o['context'] || document), evtCtx = cbCtx;
       xhr.onreadystatechange = function() {
@@ -87,16 +87,17 @@ $['plug']("ajax", function ($) {
           }
           else if (o['progress']) o['progress'](++n);
       };
-      var url = o['url'], data = null;
-      var isPost = o['type'] == "POST" || o['type'] == "PUT";
+      var url = o['url'], data = null, cache = o['cache'], async = o['async'], isPost = o['type'] == "POST" || o['type'] == "PUT";
       if( o['data'] && o['processData'] && typeof o['data'] == 'object' )
           data = $['formData'](o['data']);
 
       if (!isPost && data) {
-          url += "?" + data;
+          url += (url.indexOf('?') > 0 ? "&" : "?") + data + (!cache?'&_='+new Date().getTime():'');
           data = null;
+      }else if(!cache){
+          url += (url.indexOf('?') > 0 ? "&" : "?") + '_='+new Date().getTime();
       }
-      xhr.open(o['type'], url);
+      xhr.open(o['type'], url, async);
 
       try {
           for (var i in o.headers)
